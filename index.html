@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Caelo Technologies</title>
+<meta name="description" content="Caelo Technologies uses satellite imagery and machine learning to find and rank legacy mercury tailings from artisanal gold mining for remediation.">
+<meta property="og:title" content="Caelo Technologies">
+<meta property="og:description" content="Caelo Technologies uses satellite imagery and machine learning to find and rank legacy mercury tailings from artisanal gold mining for remediation.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2310282C'/%3E%3Ccircle cx='32' cy='32' r='15' fill='none' stroke='%23E0B04D' stroke-width='6' stroke-dasharray='70 25'/%3E%3C/svg%3E">
+
+<style>body{margin:0}img{max-width:100%}</style>
+</head>
+<body>
+<meta content="cover" name="claude:viewport-fit-sides"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;family=IBM+Plex+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<style>
+/* Layout: an orbital survey sheet — a wide hero with a scanned tile, then a single reading column of evidence, set like a technical report. */
+:root{
+  --paper:#F1F4F3; --surface:#FAFBFA; --ink:#10282C; --muted:#4C5F62; --line:#D3DCDA;
+  --gold:#8E620B; --water:#2D6E8E; --forest:#3A6448; --soil:#B39568; --canopy:#27503A;
+  --display:'Libre Baskerville', Georgia, 'Times New Roman', serif;
+  --body:'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+  --mono:'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0E1C1F; --surface:#142629; --ink:#E8EEEC; --muted:#A5B6B3; --line:#26393C;
+  --gold:#E0B04D; --water:#5FA3C4; --forest:#2E5A3E; --soil:#7C6646; --canopy:#1E3F2B; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0E1C1F; --surface:#142629; --ink:#E8EEEC; --muted:#A5B6B3; --line:#26393C;
+  --gold:#E0B04D; --water:#5FA3C4; --forest:#2E5A3E; --soil:#7C6646; --canopy:#1E3F2B; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6}
+.wrap{max-width:1120px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+a{color:var(--water)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0}
+p{margin:0}
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold)}
+
+/* header */
+header{border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:24px;padding-block:20px;flex-wrap:wrap}
+.mark{display:flex;align-items:baseline;gap:10px;text-decoration:none;color:var(--ink)}
+.mark b{font-family:var(--display);font-size:24px;font-weight:700;letter-spacing:.01em}
+.mark span{font-family:var(--mono);font-size:12px;color:var(--muted)}
+nav{display:flex;gap:22px;flex-wrap:wrap}
+nav a{color:var(--muted);text-decoration:none;font-size:15px}
+nav a:hover{color:var(--ink)}
+
+/* hero */
+.hero .wrap{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:56px;align-items:center;padding-block:72px 64px}
+.hero h1{font-size:clamp(38px,5.4vw,62px);line-height:1.08}
+.hero h1 i{color:var(--gold)}
+.hero .lede{margin-top:24px;font-size:19px;color:var(--muted);max-width:34em}
+.hero .actions{margin-top:32px;display:flex;gap:14px;flex-wrap:wrap}
+.btn{display:inline-block;padding:12px 20px;border-radius:4px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid var(--ink)}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.btn.ghost{color:var(--ink)}
+.tile{position:relative;min-width:0}
+.tile canvas{display:block;width:100%;aspect-ratio:4/3;max-width:100%;border:1px solid var(--line)}
+.scanline{position:absolute;left:0;right:0;top:0;height:2px;background:var(--gold);opacity:.55;animation:scan 7s linear infinite;pointer-events:none}
+@keyframes scan{from{top:0}to{top:calc(100% - 2px)}}
+@media (prefers-reduced-motion: reduce){.scanline{display:none}}
+.tile figcaption{margin-top:10px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+/* band strip: Sentinel-2 MSI bands */
+.bands{border-block:1px solid var(--line);background:var(--surface)}
+.bands .wrap{display:flex;gap:0;overflow-x:auto;padding-block:0}
+.band{flex:1 0 96px;padding:14px 12px;border-left:1px solid var(--line);font-family:var(--mono);font-size:12px;color:var(--muted)}
+.band:last-child{border-right:1px solid var(--line)}
+.band b{display:block;color:var(--ink);font-weight:500;font-size:13px}
+
+/* sections */
+section.block .wrap{padding-block:88px 0}
+.split{display:grid;grid-template-columns:minmax(0,300px) minmax(0,1fr);gap:56px}
+.split > *{min-width:0}
+.block h2{font-size:clamp(28px,3.4vw,38px);line-height:1.2;margin-top:10px}
+.prose p{max-width:62ch;color:var(--muted)}
+.prose p + p{margin-top:16px}
+
+.figures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:1px solid var(--ink)}
+.figure{padding:24px 24px 0 0}
+.figure + .figure{padding-left:24px;border-left:1px solid var(--line)}
+.figure .n{font-family:var(--display);font-size:clamp(34px,4vw,48px);line-height:1;color:var(--ink)}
+.figure p{margin-top:12px;color:var(--muted);font-size:15.5px}
+.source{margin-top:20px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:0;border-top:1px solid var(--ink)}
+.steps li{display:grid;grid-template-columns:72px minmax(0,1fr);gap:20px;padding-block:24px;border-bottom:1px solid var(--line)}
+.steps .k{font-family:var(--mono);font-size:13px;color:var(--gold);padding-top:6px}
+.steps h3{font-size:22px}
+.steps p{margin-top:6px;color:var(--muted);max-width:60ch}
+
+.evidence{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.card{background:var(--surface);border:1px solid var(--line);padding:24px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.card .n{font-family:var(--display);font-size:40px;line-height:1;color:var(--gold)}
+.card h3{font-size:19px;font-family:var(--body);font-weight:600}
+.card p{color:var(--muted);font-size:15.5px}
+.status{align-self:flex-start;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border:1px solid currentColor;border-radius:999px}
+.status.done{color:var(--forest)}
+.status.live{color:var(--water)}
+.status.next{color:var(--muted)}
+.card.future{background:transparent}
+.evidence.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+
+.principles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px 40px}
+.principles div{border-left:2px solid var(--gold);padding-left:18px}
+.principles h3{font-family:var(--body);font-weight:600;font-size:17px}
+.principles p{margin-top:6px;color:var(--muted);font-size:15.5px}
+
+.partner{margin-top:88px;background:var(--ink);color:var(--paper)}
+.partner .wrap{padding-block:72px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:56px;align-items:start}
+.partner .eyebrow{color:var(--gold)}
+.partner h2{font-size:clamp(28px,3.4vw,38px);line-height:1.2;margin-top:10px;color:var(--paper)}
+.partner p{color:var(--paper);opacity:.82;max-width:52ch}
+.partner .lede{margin-top:16px}
+.chain{list-style:none;margin:0;padding:0;display:grid;gap:0}
+.chain li{display:grid;grid-template-columns:120px minmax(0,1fr);gap:16px;padding-block:16px;border-top:1px solid color-mix(in srgb, var(--paper) 22%, transparent)}
+.chain li:last-child{border-bottom:1px solid color-mix(in srgb, var(--paper) 22%, transparent)}
+.chain b{font-family:var(--mono);font-weight:500;font-size:13px;color:var(--gold);padding-top:3px}
+.chain span{color:var(--paper);opacity:.88}
+
+.audience{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-top:1px solid var(--ink)}
+.audience div{padding:22px 20px 0 0}
+.audience div + div{padding-left:20px;border-left:1px solid var(--line)}
+.audience h3{font-family:var(--body);font-weight:600;font-size:16.5px}
+.audience p{margin-top:8px;color:var(--muted);font-size:15px}
+
+.contact .wrap{padding-block:88px}
+.contact-box{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:32px;align-items:end;border-top:1px solid var(--ink);padding-top:28px}
+.contact-box h2{font-size:clamp(28px,3.4vw,38px)}
+.contact-box p{margin-top:12px;color:var(--muted);max-width:52ch}
+.email{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.email code{font-family:var(--mono);font-size:16px;background:var(--surface);border:1px solid var(--line);padding:10px 14px;user-select:all}
+.email button{font:inherit;font-size:14px;font-weight:600;padding:10px 14px;background:var(--ink);color:var(--paper);border:1px solid var(--ink);border-radius:4px;cursor:pointer}
+
+footer{border-top:1px solid var(--line)}
+footer .wrap{padding-block:28px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted)}
+footer .wrap p{max-width:70ch}
+
+@media (max-width: 860px){
+  .hero .wrap{grid-template-columns:minmax(0,1fr);gap:36px;padding-block:48px}
+  .split{grid-template-columns:minmax(0,1fr);gap:24px}
+  .evidence,.evidence.two{grid-template-columns:minmax(0,1fr)}
+  .partner .wrap{grid-template-columns:minmax(0,1fr);gap:32px}
+  .audience{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .audience div:nth-child(3){padding-left:0;border-left:none}
+  .contact-box{grid-template-columns:minmax(0,1fr)}
+}
+@media (max-width: 560px){
+  .figures{grid-template-columns:minmax(0,1fr)}
+  .figure,.figure + .figure{padding:20px 0;border-left:none;border-bottom:1px solid var(--line)}
+  .principles{grid-template-columns:minmax(0,1fr)}
+  .audience{grid-template-columns:minmax(0,1fr)}
+  .audience div,.audience div + div{padding:18px 0;border-left:none;border-bottom:1px solid var(--line)}
+  .steps li{grid-template-columns:minmax(0,1fr);gap:4px}
+  .chain li{grid-template-columns:minmax(0,1fr);gap:4px}
+}
+
+.lang{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden}
+.lang button{font:inherit;font-family:var(--mono);font-size:12.5px;letter-spacing:.08em;padding:6px 10px;background:transparent;color:var(--muted);border:0;cursor:pointer}
+.lang button + button{border-left:1px solid var(--line)}
+.lang button[aria-pressed="true"]{background:var(--gold);color:var(--paper);font-weight:500}
+.hdr-right{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+</style>
+<header>
+<div class="wrap">
+<a class="mark" href="#top"><b>Caelo</b><span data-i18n="nav1">Technologies Inc.</span></a>
+<div class="hdr-right"><nav aria-label="Sections">
+<a data-i18n="nav2" href="#approach">Approach</a>
+<a data-i18n="nav3" href="#evidence">Evidence</a>
+<a data-i18n="nav4" href="#roadmap">Roadmap</a>
+<a data-i18n="nav5" href="#auroclear">AuroClear</a>
+<a data-i18n="nav6" href="#contact">Contact</a>
+</nav><div class="lang" role="group" aria-label="Language / Idioma"><button type="button" data-lang="en" lang="en">EN</button><button type="button" data-lang="pt" lang="pt-BR">PT</button><button type="button" data-lang="es" lang="es">ES</button></div></div>
+</div>
+</header>
+<main id="top">
+<section class="hero">
+<div class="wrap">
+<div>
+<p class="eyebrow" data-i18n="t7">Remote sensing for remediation</p>
+<h1 data-i18n="t8" style="margin-top:16px">Legacy mercury tailings, <i>found from orbit</i> and ranked for cleanup.</h1>
+<p class="lede" data-i18n="t9">Caelo uses Sentinel-2 satellite imagery and machine learning to locate the abandoned tailings ponds left by artisanal gold mining, so governments, operators and remediation teams know where to act first. With our partner AuroClear, the gold left in those sites pays for the cleanup.</p>
+<div class="actions">
+<a class="btn primary" data-i18n="t10" href="#evidence">See the evidence</a>
+<a class="btn ghost" data-i18n="t11" href="#contact">Get in touch</a>
+</div>
+</div>
+<figure class="tile" style="margin:0">
+<canvas aria-label="Illustration of a satellite image tile with three ranked candidate tailings ponds outlined" id="tile" role="img"></canvas>
+<div aria-hidden="true" class="scanline"></div>
+<figcaption><span data-i18n="t12">Illustration only, not real site data</span><span data-i18n="t13">10 m pixels · ranked candidates</span></figcaption>
+</figure>
+</div>
+</section>
+<div aria-label="Sentinel-2 spectral bands" class="bands">
+<div class="wrap">
+<div class="band" data-i18n="t14"><b>B2</b>490 nm · blue</div>
+<div class="band" data-i18n="t15"><b>B3</b>560 nm · green</div>
+<div class="band" data-i18n="t16"><b>B4</b>665 nm · red</div>
+<div class="band" data-i18n="t17"><b>B8</b>842 nm · NIR</div>
+<div class="band" data-i18n="t18"><b>B11</b>1610 nm · SWIR</div>
+<div class="band" data-i18n="t19"><b>B12</b>2190 nm · SWIR</div>
+</div>
+</div>
+<section class="block" id="problem">
+<div class="wrap split">
+<div>
+<p class="eyebrow" data-i18n="t20">The problem</p>
+<h2 data-i18n="t21">Decades of mercury, with no map of where it sits</h2>
+</div>
+<div>
+<div class="figures">
+<div class="figure"><p class="n">2,000+ t</p><p data-i18n="t22">of mercury released every year by artisanal and small-scale gold mining</p></div>
+<div class="figure"><p class="n">80+</p><p data-i18n="t23">countries where up to 20 million artisanal miners work</p></div>
+<div class="figure"><p class="n">100M</p><p data-i18n="t24">people directly or indirectly exposed to mercury from the sector</p></div>
+</div>
+<div class="prose" style="margin-top:28px">
+<p data-i18n="t25">Much of that mercury stays behind in tailings ponds after mining moves on. In water and wet sediment it can turn into methylmercury, which builds up through the food web and reaches communities that rely on fish.</p>
+<p data-i18n="t26">It doesn’t go away on its own. Studies in French Guiana, Australia and California find amalgamation mercury still in soils and sediments 60 to 150 years after mining ended, and mining ponds in the Peruvian Amazon convert mercury to methylmercury five to seven times faster than rivers.</p>
+<p data-i18n="t27">Remediation money is limited, and nobody can prioritize sites that haven’t been found. Caelo builds that inventory.</p>
+</div>
+<p class="source" data-i18n="t28">Sources: UNEP planetGOLD programme; <a href="https://www.isterre.fr/IMG/pdf/guedron_mehg_guyane_2011.pdf">Guédron et al. 2011, Water Research</a>; <a href="https://openresearch-repository.anu.edu.au/entities/publication/e8033880-f4a7-47d2-9584-ebc683a09a19">Schneider et al., Environmental Pollution</a>; <a href="https://www.usgs.gov/centers/california-water-science-center/science/mercury?page=1">USGS</a>; <a href="https://carnegiescience.edu/artificial-lake-expansion-amplifies-mercury-pollution-gold-mining">Gerson et al. 2020, Science Advances</a></p>
+</div>
+</div>
+</section>
+<section class="block" id="approach">
+<div class="wrap split">
+<div>
+<p class="eyebrow" data-i18n="t29">Approach</p>
+<h2 data-i18n="t30">Three passes over every scene</h2>
+</div>
+<ol class="steps">
+<li><span class="k" data-i18n="t31">Pass 1</span><div><h3 data-i18n="t32">Detect</h3><p data-i18n="t33">Multispectral Sentinel-2 imagery is screened for the surface signatures of mine tailings, at 10 m resolution, across whole districts at once.</p></div></li>
+<li><span class="k" data-i18n="t34">Pass 2</span><div><h3 data-i18n="t35">Filter</h3><p data-i18n="t36">Sentinel-1 radar, time-series data and terrain (elevation and slope) separate standing ponds from rivers, wet ground and recently disturbed land, so only quiet legacy sites stay on the list.</p></div></li>
+<li><span class="k" data-i18n="t37">Pass 3</span><div><h3 data-i18n="t38">Rank</h3><p data-i18n="t39">Candidates are ordered for field characterization and remediation, giving planners a short list instead of a whole map.</p></div></li>
+</ol>
+</div>
+</section>
+<section class="block" id="evidence">
+<div class="wrap">
+<div class="split" style="margin-bottom:36px">
+<div>
+<p class="eyebrow" data-i18n="t40">Evidence</p>
+<h2 data-i18n="t41">Tested on ground truth, then in the field</h2>
+</div>
+<div class="prose"><p data-i18n="t42">Predictions are written down before field data is collected, so results can’t be tuned after the fact.</p></div>
+</div>
+<div class="evidence">
+<div class="card">
+<span class="status done" data-i18n="t43">Complete</span>
+<p class="n">0.87</p>
+<h3 data-i18n="t44">Proof of concept, Canada</h3>
+<p data-i18n="t45">F1 score on labelled historic tailings in Nova Scotia, with every test site held out of training. Published benchmarks sit near 0.7.</p>
+</div>
+<div class="card">
+<span class="status done" data-i18n="t46">Complete</span>
+<p class="n">2</p>
+<h3 data-i18n="t47">Districts scanned, Guyana</h3>
+<p data-i18n="t48">Applied under dense rainforest canopy and persistent cloud, the hardest conditions for optical satellite work.</p>
+</div>
+<div class="card">
+<span class="status live" data-i18n="t49">Under way</span>
+<p class="n">17</p>
+<h3 data-i18n="t50">Field-validation samples</h3>
+<p data-i18n="t51">GPS-logged and laboratory-assayed, collected in November 2026 with a university partner in Guyana. Results due January 2027.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="block" id="principles">
+<div class="wrap split">
+<div>
+<p class="eyebrow" data-i18n="t52">How we work</p>
+<h2 data-i18n="t53">Built for cleanup, not policing</h2>
+</div>
+<div class="principles">
+<div><h3 data-i18n="t54">Remediation first</h3><p data-i18n="t55">Caelo maps legacy contamination to direct cleanup. It is not a surveillance or enforcement product.</p></div>
+<div><h3 data-i18n="t56">Claims we can defend</h3><p data-i18n="t57">Outputs indicate likely tailings and conditions that favour mercury transport. They never claim measured concentrations.</p></div>
+<div><h3 data-i18n="t58">Predictions on record</h3><p data-i18n="t59">Expected results are fixed before validation data is examined, and negative results are reported too.</p></div>
+<div><h3 data-i18n="t60">Local expertise at the centre</h3><p data-i18n="t61">Field work is done with in-country geologists and institutions, and environmental findings are shared with the communities where samples are taken.</p></div>
+</div>
+</div>
+</section>
+<section class="block" id="roadmap">
+<div class="wrap">
+<div class="split" style="margin-bottom:36px">
+<div>
+<p class="eyebrow" data-i18n="t62">Roadmap</p>
+<h2 data-i18n="t63">One platform, more of the tailings problem</h2>
+</div>
+<div class="prose"><p data-i18n="t64">Detection and ranking are what Caelo has validated today. The same satellites and pipeline extend naturally to the rest of the tailings lifecycle, and every new layer stays inside the remediation mandate.</p></div>
+</div>
+<div class="evidence two">
+<div class="card">
+<span class="status live" data-i18n="t65">Planned 2027</span>
+<h3 data-i18n="t66">Remediation verification</h3>
+<p data-i18n="t67">Tracking revegetation, surface water and ground stability on treated sites over time, to show that a cleanup held. Relevant wherever closure has to be certified, including orphaned mines in Canada.</p>
+</div>
+<div class="card">
+<span class="status live" data-i18n="t68">Planned 2027</span>
+<h3 data-i18n="t69">Downstream water</h3>
+<p data-i18n="t70">Mapping sediment plumes and turbidity below legacy ponds, to flag where tailings may be reaching rivers and the communities that depend on them.</p>
+</div>
+<div class="card future">
+<span class="status next" data-i18n="t71">Platform potential</span>
+<h3 data-i18n="t72">Tailings stability</h3>
+<p data-i18n="t73">InSAR ground-movement monitoring for the small artisanal ponds that no one watches today.</p>
+</div>
+<div class="card future">
+<span class="status next" data-i18n="t74">Platform potential</span>
+<h3 data-i18n="t75">Critical minerals</h3>
+<p data-i18n="t76">Extending detection to artisanal cobalt and lithium workings.</p>
+</div>
+</div>
+</div>
+</section>
+<section class="block" id="challenges">
+<div class="wrap split">
+<div>
+<p class="eyebrow" data-i18n="t77">Industry challenges</p>
+<h2 data-i18n="t78">How we answer the sector’s pressures</h2>
+</div>
+<div class="principles">
+<div><h3 data-i18n="t79">Water and tailings</h3><p data-i18n="t80">Legacy ponds are found, reprocessed and reclaimed, with process water reused on site rather than discharged.</p></div>
+<div><h3 data-i18n="t81">Safety</h3><p data-i18n="t82">No open burning of amalgam, the largest source of miners’ mercury-vapour exposure. Legacy mercury is captured in a closed retort, and remote screening means fewer field trips into difficult terrain.</p></div>
+<div><h3 data-i18n="t83">Digitalization and AI</h3><p data-i18n="t84">Satellite imagery and machine learning replace district-wide field reconnaissance.</p></div>
+<div><h3 data-i18n="t85">Sustainability</h3><p data-i18n="t86">Gold-funded cleanup, progressive reclamation to a background-referenced endpoint, and a 5% community commitment.</p></div>
+<div><h3 data-i18n="t87">Community health</h3><p data-i18n="t88">Removing legacy mercury cuts the path from tailings ponds into fish and the riverside communities that rely on them.</p></div>
+<div><h3 data-i18n="t89">Critical minerals</h3><p data-i18n="t90">On the roadmap: extending detection to artisanal cobalt and lithium workings.</p></div>
+</div>
+</div>
+</section>
+<section class="partner" id="auroclear">
+<div class="wrap">
+<div>
+<p class="eyebrow" data-i18n="t91">Business model · partner company</p>
+<h2 data-i18n="t92">A cleanup that pays for itself</h2>
+<p class="lede" data-i18n="t93">AuroClear Technologies Inc. reprocesses legacy tailings without mercury. The gold left behind by mercury mining pays to remove the mercury and reclaim the ground, so remediation is funded by what it recovers, not by grants alone. Its first pilot plant is planned for Guyana in 2027.</p>
+<p data-i18n="t94" style="margin-top:16px"><b style="color:var(--gold);font-weight:600">Pre-optimized feedstock.</b> Caelo selects the ground from orbit, and a proprietary pre-conditioning step prepares clay-rich pond sediment before it reaches proven gravity equipment.</p>
+<p data-i18n="t95" style="margin-top:16px">AuroClear is committed to writing a 5% community commitment into its corporate articles.</p>
+</div>
+<ol class="chain">
+<li><b data-i18n="t96">Caelo</b><span data-i18n="t97">Finds and ranks legacy tailings from satellite imagery</span></li>
+<li><b data-i18n="t98">Characterize</b><span data-i18n="t99">Field sampling confirms the site and measures mercury</span></li>
+<li><b data-i18n="t100">AuroClear</b><span data-i18n="t101">Mercury-free gravity reprocessing recovers residual gold</span></li>
+<li><b data-i18n="t102">Remediate</b><span data-i18n="t103">Mercury in processed material is captured, not released</span></li>
+<li><b data-i18n="t104">Reclaim</b><span data-i18n="t105">Ground is regraded and revegetated as work progresses</span></li>
+<li><b data-i18n="t106">Verify</b><span data-i18n="t107">Caelo will confirm from orbit that the cleanup held (planned, 2027)</span></li>
+</ol>
+</div>
+</section>
+<section class="block" id="who">
+<div class="wrap">
+<div class="split" style="margin-bottom:36px">
+<div>
+<p class="eyebrow" data-i18n="t108">Who it serves</p>
+<h2 data-i18n="t109">Anyone responsible for a legacy site</h2>
+</div>
+<div class="prose"><p data-i18n="t110">The same detect-and-prioritize problem exists wherever mercury amalgamation was used, from South America to Africa, the Philippines and beyond, and at orphaned and abandoned mines in Canada.</p></div>
+</div>
+<div class="audience">
+<div><h3 data-i18n="t111">Governments</h3><p data-i18n="t112">Site inventories for national mercury action plans under the Minamata Convention</p></div>
+<div><h3 data-i18n="t113">Mining operators</h3><p data-i18n="t114">Legacy liabilities mapped across concessions and closure areas</p></div>
+<div><h3 data-i18n="t115">NGOs and funders</h3><p data-i18n="t116">Evidence to target remediation programmes where they matter most</p></div>
+<div><h3 data-i18n="t117">Researchers</h3><p data-i18n="t118">Field-validated detections for environmental and public-health studies</p></div>
+</div>
+</div>
+</section>
+<section class="contact" id="contact">
+<div class="wrap">
+<div class="contact-box">
+<div>
+<p class="eyebrow" data-i18n="t119">Contact</p>
+<h2 data-i18n="t120" style="margin-top:10px">Talk to us about a pilot</h2>
+<p data-i18n="t121">George McDonald, Founder. Kitchener-Waterloo, Ontario, Canada.</p>
+</div>
+<div class="email">
+<code id="addr">gmsolutions62@gmail.com</code>
+<button data-i18n="t122" id="copy" type="button">Copy email</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<footer>
+<div class="wrap">
+<span data-i18n="t123">© 2026 Caelo Technologies Inc. · A federally incorporated Canadian company</span>
+<p data-i18n="t124">Mercury figures: UNEP planetGOLD programme. Validation results will be posted when available.</p>
+</div>
+</footer>
+<script>
+(function(){
+  var D={pt:{"nav1": "Technologies Inc.", "nav2": "Abordagem", "nav3": "Evidências", "nav4": "Roteiro", "nav5": "AuroClear", "nav6": "Contato", "t7": "Sensoriamento remoto para remediação", "t8": "Rejeitos com mercúrio do passado, <i>encontrados do espaço</i> e priorizados para limpeza.", "t9": "A Caelo usa imagens de satélite Sentinel-2 e aprendizado de máquina para localizar as lagoas de rejeitos abandonadas pela mineração artesanal de ouro, para que governos, operadores e equipes de remediação saibam onde agir primeiro. Com nossa parceira AuroClear, o ouro que restou nesses locais paga a limpeza.", "t10": "Ver as evidências", "t11": "Fale conosco", "t12": "Apenas ilustração, não são dados reais", "t13": "Pixels de 10 m · candidatos priorizados", "t14": "<b>B2</b>490 nm · azul", "t15": "<b>B3</b>560 nm · verde", "t16": "<b>B4</b>665 nm · vermelho", "t17": "<b>B8</b>842 nm · NIR", "t18": "<b>B11</b>1610 nm · SWIR", "t19": "<b>B12</b>2190 nm · SWIR", "t20": "O problema", "t21": "Décadas de mercúrio, sem um mapa de onde ele está", "t22": "de mercúrio liberadas por ano pela mineração artesanal e de pequena escala de ouro", "t23": "países onde trabalham até 20 milhões de mineradores artesanais", "t24": "de pessoas expostas direta ou indiretamente ao mercúrio do setor", "t25": "Grande parte desse mercúrio fica nas lagoas de rejeitos depois que a mineração segue em frente. Na água e no sedimento úmido, ele pode se transformar em metilmercúrio, que se acumula na cadeia alimentar e chega às comunidades que dependem do peixe.", "t26": "Ele não desaparece sozinho. Estudos na Guiana Francesa, na Austrália e na Califórnia encontram mercúrio de amalgamação em solos e sedimentos de 60 a 150 anos após o fim da mineração, e lagoas de mineração na Amazônia peruana convertem mercúrio em metilmercúrio de cinco a sete vezes mais rápido que os rios.", "t27": "Os recursos para remediação são limitados, e ninguém consegue priorizar locais que ainda não foram encontrados. A Caelo cria esse inventário.", "t28": "Fontes: programa planetGOLD do PNUMA; <a href=\"https://www.isterre.fr/IMG/pdf/guedron_mehg_guyane_2011.pdf\">Guédron et al. 2011, Water Research</a>; <a href=\"https://openresearch-repository.anu.edu.au/entities/publication/e8033880-f4a7-47d2-9584-ebc683a09a19\">Schneider et al., Environmental Pollution</a>; <a href=\"https://www.usgs.gov/centers/california-water-science-center/science/mercury?page=1\">USGS</a>; <a href=\"https://carnegiescience.edu/artificial-lake-expansion-amplifies-mercury-pollution-gold-mining\">Gerson et al. 2020, Science Advances</a>", "t29": "Abordagem", "t30": "Três etapas em cada cena", "t31": "Etapa 1", "t32": "Detectar", "t33": "Imagens multiespectrais Sentinel-2 são analisadas em busca das assinaturas superficiais de rejeitos de mineração, com resolução de 10 m, em distritos inteiros de uma só vez.", "t34": "Etapa 2", "t35": "Filtrar", "t36": "Radar Sentinel-1, séries temporais e relevo (elevação e declividade) separam lagoas de rios, terrenos úmidos e áreas perturbadas recentemente, para que só os locais antigos e inativos fiquem na lista.", "t37": "Etapa 3", "t38": "Priorizar", "t39": "Os candidatos são ordenados para caracterização em campo e remediação, dando aos planejadores uma lista curta em vez de um mapa inteiro.", "t40": "Evidências", "t41": "Testado com dados de referência, depois em campo", "t42": "As previsões são registradas antes da coleta dos dados de campo, para que os resultados não possam ser ajustados depois.", "t43": "Concluído", "t44": "Prova de conceito, Canadá", "t45": "Pontuação F1 em rejeitos históricos rotulados na Nova Escócia, com cada local de teste excluído do treinamento. Os resultados publicados ficam em torno de 0,7.", "t46": "Concluído", "t47": "Distritos analisados, Guiana", "t48": "Aplicado sob densa cobertura de floresta tropical e nuvens persistentes, as condições mais difíceis para o trabalho com satélites ópticos.", "t49": "Em andamento", "t50": "Amostras de validação em campo", "t51": "Georreferenciadas por GPS e analisadas em laboratório, coletadas em novembro de 2026 com uma universidade parceira na Guiana. Resultados previstos para janeiro de 2027.", "t52": "Como trabalhamos", "t53": "Feito para limpar, não para fiscalizar", "t54": "Remediação em primeiro lugar", "t55": "A Caelo mapeia a contaminação do passado para orientar a limpeza. Não é um produto de vigilância ou fiscalização.", "t56": "Afirmações que podemos sustentar", "t57": "Os resultados indicam prováveis rejeitos e condições que favorecem o transporte de mercúrio. Nunca afirmam concentrações medidas.", "t58": "Previsões registradas", "t59": "Os resultados esperados são definidos antes de examinar os dados de validação, e os resultados negativos também são divulgados.", "t60": "Especialistas locais no centro", "t61": "O trabalho de campo é feito com geólogos e instituições do país, e os resultados ambientais são compartilhados com as comunidades onde as amostras são coletadas.", "t62": "Roteiro", "t63": "Uma plataforma, mais do problema dos rejeitos", "t64": "Detecção e priorização são o que a Caelo validou hoje. Os mesmos satélites e o mesmo processamento se estendem naturalmente ao restante do ciclo de vida dos rejeitos, e cada nova camada permanece dentro da missão de remediação.", "t65": "Previsto para 2027", "t66": "Verificação da remediação", "t67": "Acompanhar a revegetação, a água superficial e a estabilidade do terreno em locais tratados ao longo do tempo, para mostrar que a limpeza se manteve. Relevante onde o fechamento precisa ser certificado, inclusive em minas órfãs no Canadá.", "t68": "Previsto para 2027", "t69": "Água a jusante", "t70": "Mapear plumas de sedimento e turbidez abaixo das lagoas antigas, para indicar onde os rejeitos podem estar chegando aos rios e às comunidades que dependem deles.", "t71": "Potencial da plataforma", "t72": "Estabilidade de rejeitos", "t73": "Monitoramento de movimentação do terreno por InSAR para as pequenas lagoas artesanais que ninguém acompanha hoje.", "t74": "Potencial da plataforma", "t75": "Minerais críticos", "t76": "Estender a detecção a frentes artesanais de cobalto e lítio.", "t77": "Desafios do setor", "t78": "Como respondemos às pressões do setor", "t79": "Água e rejeitos", "t80": "Lagoas antigas são encontradas, reprocessadas e recuperadas, com a água de processo reutilizada no local em vez de descartada.", "t81": "Segurança", "t82": "Sem queima aberta de amálgama, a maior fonte de exposição dos mineradores ao vapor de mercúrio. O mercúrio antigo é capturado em retorta fechada, e a triagem remota significa menos viagens de campo a terrenos difíceis.", "t83": "Digitalização e IA", "t84": "Imagens de satélite e aprendizado de máquina substituem o reconhecimento de campo em distritos inteiros.", "t85": "Sustentabilidade", "t86": "Limpeza financiada pelo ouro, recuperação progressiva até um padrão referenciado ao background natural e um compromisso de 5% com a comunidade.", "t87": "Saúde comunitária", "t88": "Remover o mercúrio antigo interrompe o caminho das lagoas de rejeitos até os peixes e as comunidades ribeirinhas que dependem deles.", "t89": "Minerais críticos", "t90": "No roteiro: estender a detecção a frentes artesanais de cobalto e lítio.", "t91": "Modelo de negócio · empresa parceira", "t92": "Uma limpeza que se paga", "t93": "A AuroClear Technologies Inc. reprocessa rejeitos antigos sem mercúrio. O ouro deixado pela mineração com mercúrio paga a remoção do mercúrio e a recuperação do terreno, de modo que a remediação é financiada pelo que recupera, e não apenas por doações. Sua primeira planta-piloto está prevista para a Guiana em 2027.", "t94": "<b style=\"color:var(--gold);font-weight:600\">Alimentação pré-otimizada.</b> A Caelo seleciona o terreno a partir do espaço, e uma etapa proprietária de pré-condicionamento prepara o sedimento argiloso das lagoas antes que ele chegue a equipamentos gravimétricos comprovados.", "t95": "A AuroClear se compromete a incluir em seu estatuto social um compromisso de 5% com a comunidade.", "t96": "Caelo", "t97": "Encontra e prioriza rejeitos antigos com imagens de satélite", "t98": "Caracterizar", "t99": "A amostragem em campo confirma o local e mede o mercúrio", "t100": "AuroClear", "t101": "Reprocessamento gravimétrico sem mercúrio recupera o ouro residual", "t102": "Remediar", "t103": "O mercúrio do material processado é capturado, não liberado", "t104": "Recuperar", "t105": "O terreno é regularizado e revegetado à medida que o trabalho avança", "t106": "Verificar", "t107": "A Caelo vai confirmar do espaço que a limpeza se manteve (previsto, 2027)", "t108": "Para quem é", "t109": "Qualquer responsável por um passivo de mineração", "t110": "O mesmo problema de detectar e priorizar existe onde quer que a amalgamação com mercúrio tenha sido usada, da América do Sul à África, às Filipinas e além, e em minas órfãs e abandonadas no Canadá.", "t111": "Governos", "t112": "Inventários de locais para os planos nacionais de ação sobre mercúrio da Convenção de Minamata", "t113": "Mineradoras", "t114": "Passivos antigos mapeados em concessões e áreas de fechamento", "t115": "ONGs e financiadores", "t116": "Evidências para direcionar programas de remediação onde mais importam", "t117": "Pesquisadores", "t118": "Detecções validadas em campo para estudos ambientais e de saúde pública", "t119": "Contato", "t120": "Fale conosco sobre um piloto", "t121": "George McDonald, fundador. Kitchener-Waterloo, Ontário, Canadá.", "t122": "Copiar e-mail", "t123": "© 2026 Caelo Technologies Inc. · Empresa canadense com registro federal", "t124": "Dados sobre mercúrio: programa planetGOLD do PNUMA. Os resultados da validação serão publicados quando disponíveis.", "copied": "Copiado", "selected": "Selecionado, pressione Ctrl+C", "aria_tile": "Ilustração de uma imagem de satélite com três lagoas de rejeitos candidatas destacadas e priorizadas"},es:{"nav1": "Technologies Inc.", "nav2": "Enfoque", "nav3": "Evidencia", "nav4": "Hoja de ruta", "nav5": "AuroClear", "nav6": "Contacto", "t7": "Teledetección para la remediación", "t8": "Relaves con mercurio heredados, <i>detectados desde el espacio</i> y priorizados para su limpieza.", "t9": "Caelo usa imágenes satelitales Sentinel-2 y aprendizaje automático para ubicar las pozas de relaves abandonadas por la minería artesanal de oro, para que gobiernos, operadores y equipos de remediación sepan dónde actuar primero. Con nuestra empresa aliada AuroClear, el oro que queda en esos sitios paga la limpieza.", "t10": "Ver la evidencia", "t11": "Contáctenos", "t12": "Solo ilustración, no son datos reales", "t13": "Píxeles de 10 m · candidatos priorizados", "t14": "<b>B2</b>490 nm · azul", "t15": "<b>B3</b>560 nm · verde", "t16": "<b>B4</b>665 nm · rojo", "t17": "<b>B8</b>842 nm · NIR", "t18": "<b>B11</b>1610 nm · SWIR", "t19": "<b>B12</b>2190 nm · SWIR", "t20": "El problema", "t21": "Décadas de mercurio, sin un mapa de dónde está", "t22": "de mercurio liberadas cada año por la minería de oro artesanal y de pequeña escala", "t23": "países donde trabajan hasta 20 millones de mineros artesanales", "t24": "de personas expuestas directa o indirectamente al mercurio del sector", "t25": "Gran parte de ese mercurio queda en las pozas de relaves cuando la minería se traslada. En el agua y el sedimento húmedo puede transformarse en metilmercurio, que se acumula en la cadena alimentaria y llega a las comunidades que dependen del pescado.", "t26": "No desaparece por sí solo. Estudios en la Guayana Francesa, Australia y California encuentran mercurio de amalgamación en suelos y sedimentos de 60 a 150 años después del fin de la minería, y las pozas mineras de la Amazonía peruana convierten el mercurio en metilmercurio de cinco a siete veces más rápido que los ríos.", "t27": "Los fondos para remediación son limitados, y nadie puede priorizar sitios que aún no se han encontrado. Caelo construye ese inventario.", "t28": "Fuentes: programa planetGOLD del PNUMA; <a href=\"https://www.isterre.fr/IMG/pdf/guedron_mehg_guyane_2011.pdf\">Guédron et al. 2011, Water Research</a>; <a href=\"https://openresearch-repository.anu.edu.au/entities/publication/e8033880-f4a7-47d2-9584-ebc683a09a19\">Schneider et al., Environmental Pollution</a>; <a href=\"https://www.usgs.gov/centers/california-water-science-center/science/mercury?page=1\">USGS</a>; <a href=\"https://carnegiescience.edu/artificial-lake-expansion-amplifies-mercury-pollution-gold-mining\">Gerson et al. 2020, Science Advances</a>", "t29": "Enfoque", "t30": "Tres pasadas sobre cada escena", "t31": "Paso 1", "t32": "Detectar", "t33": "Las imágenes multiespectrales Sentinel-2 se analizan en busca de las firmas superficiales de los relaves mineros, con resolución de 10 m, en distritos completos a la vez.", "t34": "Paso 2", "t35": "Filtrar", "t36": "El radar Sentinel-1, las series temporales y el relieve (elevación y pendiente) separan las pozas de los ríos, los terrenos húmedos y las zonas alteradas recientemente, para que solo los sitios antiguos e inactivos queden en la lista.", "t37": "Paso 3", "t38": "Priorizar", "t39": "Los candidatos se ordenan para su caracterización en campo y su remediación, y los planificadores reciben una lista corta en lugar de un mapa entero.", "t40": "Evidencia", "t41": "Probado con datos de referencia, luego en campo", "t42": "Las predicciones se registran antes de recolectar los datos de campo, para que los resultados no puedan ajustarse después.", "t43": "Completado", "t44": "Prueba de concepto, Canadá", "t45": "Puntaje F1 en relaves históricos etiquetados en Nueva Escocia, con cada sitio de prueba excluido del entrenamiento. Los resultados publicados rondan 0,7.", "t46": "Completado", "t47": "Distritos analizados, Guyana", "t48": "Aplicado bajo densa cobertura de bosque tropical y nubosidad persistente, las condiciones más difíciles para el trabajo con satélites ópticos.", "t49": "En curso", "t50": "Muestras de validación en campo", "t51": "Georreferenciadas con GPS y analizadas en laboratorio, recolectadas en noviembre de 2026 con una universidad aliada en Guyana. Resultados previstos para enero de 2027.", "t52": "Cómo trabajamos", "t53": "Hecho para limpiar, no para fiscalizar", "t54": "La remediación primero", "t55": "Caelo mapea la contaminación heredada para orientar la limpieza. No es un producto de vigilancia ni de fiscalización.", "t56": "Afirmaciones que podemos sustentar", "t57": "Los resultados indican relaves probables y condiciones que favorecen el transporte de mercurio. Nunca afirman concentraciones medidas.", "t58": "Predicciones registradas", "t59": "Los resultados esperados se fijan antes de examinar los datos de validación, y también se informan los resultados negativos.", "t60": "Expertos locales en el centro", "t61": "El trabajo de campo se hace con geólogos e instituciones del país, y los resultados ambientales se comparten con las comunidades donde se toman las muestras.", "t62": "Hoja de ruta", "t63": "Una plataforma, más del problema de los relaves", "t64": "La detección y la priorización son lo que Caelo ha validado hoy. Los mismos satélites y el mismo procesamiento se extienden naturalmente al resto del ciclo de vida de los relaves, y cada nueva capa se mantiene dentro de la misión de remediación.", "t65": "Previsto para 2027", "t66": "Verificación de la remediación", "t67": "Seguir la revegetación, el agua superficial y la estabilidad del terreno en sitios tratados a lo largo del tiempo, para demostrar que la limpieza se mantuvo. Relevante donde el cierre debe certificarse, incluidas las minas huérfanas de Canadá.", "t68": "Previsto para 2027", "t69": "Agua aguas abajo", "t70": "Mapear plumas de sedimento y turbidez debajo de las pozas antiguas, para señalar dónde los relaves podrían estar llegando a los ríos y a las comunidades que dependen de ellos.", "t71": "Potencial de la plataforma", "t72": "Estabilidad de relaves", "t73": "Monitoreo del movimiento del terreno con InSAR para las pequeñas pozas artesanales que hoy nadie vigila.", "t74": "Potencial de la plataforma", "t75": "Minerales críticos", "t76": "Extender la detección a labores artesanales de cobalto y litio.", "t77": "Desafíos del sector", "t78": "Cómo respondemos a las presiones del sector", "t79": "Agua y relaves", "t80": "Las pozas antiguas se encuentran, se reprocesan y se rehabilitan, y el agua de proceso se reutiliza en el sitio en lugar de verterse.", "t81": "Seguridad", "t82": "Sin quema abierta de amalgama, la mayor fuente de exposición de los mineros al vapor de mercurio. El mercurio heredado se captura en una retorta cerrada, y la evaluación remota implica menos salidas de campo a terrenos difíciles.", "t83": "Digitalización e IA", "t84": "Las imágenes satelitales y el aprendizaje automático reemplazan el reconocimiento de campo en distritos enteros.", "t85": "Sostenibilidad", "t86": "Limpieza financiada con oro, rehabilitación progresiva hasta un estándar referido a niveles de fondo naturales y un compromiso del 5% con la comunidad.", "t87": "Salud comunitaria", "t88": "Retirar el mercurio heredado corta el camino desde las pozas de relaves hacia los peces y las comunidades ribereñas que dependen de ellos.", "t89": "Minerales críticos", "t90": "En la hoja de ruta: extender la detección a labores artesanales de cobalto y litio.", "t91": "Modelo de negocio · empresa aliada", "t92": "Una limpieza que se paga sola", "t93": "AuroClear Technologies Inc. reprocesa relaves heredados sin mercurio. El oro que dejó la minería con mercurio paga el retiro del mercurio y la rehabilitación del terreno, de modo que la remediación se financia con lo que recupera, no solo con subvenciones. Su primera planta piloto está prevista en Guyana para 2027.", "t94": "<b style=\"color:var(--gold);font-weight:600\">Alimentación preoptimizada.</b> Caelo selecciona el terreno desde el espacio, y una etapa propia de preacondicionamiento prepara el sedimento arcilloso de las pozas antes de que llegue a equipos gravimétricos probados.", "t95": "AuroClear se compromete a incorporar en sus estatutos un compromiso del 5% con la comunidad.", "t96": "Caelo", "t97": "Encuentra y prioriza relaves heredados con imágenes satelitales", "t98": "Caracterizar", "t99": "El muestreo en campo confirma el sitio y mide el mercurio", "t100": "AuroClear", "t101": "El reprocesamiento gravimétrico sin mercurio recupera el oro residual", "t102": "Remediar", "t103": "El mercurio del material procesado se captura, no se libera", "t104": "Rehabilitar", "t105": "El terreno se nivela y se revegeta a medida que avanza el trabajo", "t106": "Verificar", "t107": "Caelo confirmará desde el espacio que la limpieza se mantuvo (previsto, 2027)", "t108": "A quién sirve", "t109": "A cualquier responsable de un pasivo minero", "t110": "El mismo problema de detectar y priorizar existe dondequiera que se usó la amalgamación con mercurio, desde Sudamérica hasta África, Filipinas y más allá, y en minas huérfanas y abandonadas de Canadá.", "t111": "Gobiernos", "t112": "Inventarios de sitios para los planes nacionales de acción sobre el mercurio del Convenio de Minamata", "t113": "Operadores mineros", "t114": "Pasivos heredados mapeados en concesiones y zonas de cierre", "t115": "ONG y financiadores", "t116": "Evidencia para orientar los programas de remediación donde más importan", "t117": "Investigadores", "t118": "Detecciones validadas en campo para estudios ambientales y de salud pública", "t119": "Contacto", "t120": "Hablemos de un piloto", "t121": "George McDonald, fundador. Kitchener-Waterloo, Ontario, Canadá.", "t122": "Copiar correo", "t123": "© 2026 Caelo Technologies Inc. · Empresa canadiense con registro federal", "t124": "Datos sobre mercurio: programa planetGOLD del PNUMA. Los resultados de la validación se publicarán cuando estén disponibles.", "copied": "Copiado", "selected": "Seleccionado, presione Ctrl+C", "aria_tile": "Ilustración de una imagen satelital con tres pozas de relaves candidatas delineadas y priorizadas"}};
+  var EN={copied:'Copied',selected:'Selected, press Ctrl+C'};
+  var els=document.querySelectorAll('[data-i18n]');
+  els.forEach(function(el){EN[el.getAttribute('data-i18n')]=el.innerHTML});
+  var tile=document.getElementById('tile');
+  EN.aria_tile=tile?tile.getAttribute('aria-label'):'';
+  var cur='en';
+  window.caeloT=function(k){var d=cur==='en'?EN:D[cur];return (d&&d[k]!=null)?d[k]:EN[k]};
+  function set(l){
+    if(l!=='pt'&&l!=='es')l='en';cur=l;
+    els.forEach(function(el){el.innerHTML=window.caeloT(el.getAttribute('data-i18n'))});
+    if(tile)tile.setAttribute('aria-label',window.caeloT('aria_tile'));
+    document.documentElement.lang=l==='pt'?'pt-BR':l;
+    document.querySelectorAll('.lang button').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-lang')===l))});
+    try{localStorage.setItem('caelo-lang',l)}catch(e){}
+  }
+  document.querySelectorAll('.lang button').forEach(function(b){b.addEventListener('click',function(){set(b.getAttribute('data-lang'))})});
+  var l=null;
+  try{l=new URLSearchParams(location.search).get('lang')}catch(e){}
+  if(!l){try{l=localStorage.getItem('caelo-lang')}catch(e){}}
+  if(!l){var n=(navigator.language||'').toLowerCase();l=n.indexOf('pt')===0?'pt':n.indexOf('es')===0?'es':'en'}
+  set(l);
+})();
+</script>
+
+<script>
+(function(){
+  var btn=document.getElementById('copy'), addr=document.getElementById('addr');
+  btn.addEventListener('click',function(){
+    var t=addr.textContent;
+    function sel(){var r=document.createRange();r.selectNodeContents(addr);var s=getSelection();s.removeAllRanges();s.addRange(r);btn.textContent=window.caeloT('selected');}
+    try{navigator.clipboard.writeText(t).then(function(){btn.textContent=window.caeloT('copied');setTimeout(function(){btn.textContent=window.caeloT('t122')},1800)},sel)}catch(e){sel()}
+  });
+
+  var cv=document.getElementById('tile');
+  function v(n){return getComputedStyle(document.documentElement).getPropertyValue(n).trim()}
+  function hex(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');var n=parseInt(h,16);return[(n>>16)&255,(n>>8)&255,n&255]}
+  function mix(a,b,t){return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]}
+  function rnd(x,y){var s=Math.sin(x*127.1+y*311.7)*43758.5453;return s-Math.floor(s)}
+  function noise(x,y){var xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi;
+    var a=rnd(xi,yi),b=rnd(xi+1,yi),c=rnd(xi,yi+1),d=rnd(xi+1,yi+1);
+    var u=xf*xf*(3-2*xf),w=yf*yf*(3-2*yf);return a+(b-a)*u+(c-a)*w+(a-b-c+d)*u*w}
+  var ponds=[{x:.30,y:.38,rx:.075,ry:.05,r:1},{x:.68,y:.62,rx:.06,ry:.045,r:2},{x:.56,y:.24,rx:.045,ry:.032,r:3}];
+  function draw(){
+    var w=cv.clientWidth,h=cv.clientHeight;if(!w||!h)return;
+    var dpr=window.devicePixelRatio||1;cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);
+    var g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);
+    var canopy=hex(v('--canopy')),forest=hex(v('--forest')),soil=hex(v('--soil')),water=hex(v('--water')),gold=v('--gold'),paper=v('--paper');
+    var px=Math.max(8,Math.round(w/52));
+    for(var y=0;y<h;y+=px){for(var x=0;x<w;x+=px){
+      var nx=x/w,ny=y/h,n=noise(nx*6,ny*6)*.7+noise(nx*18,ny*18)*.3;
+      var c=mix(canopy,forest,n);
+      var bare=0;ponds.forEach(function(p){var dx=(nx-p.x)/(p.rx*2.1),dy=(ny-p.y)/(p.ry*2.4);var d=dx*dx+dy*dy;if(d<1)bare=Math.max(bare,1-d)});
+      var river=Math.abs(ny-(.78+.08*Math.sin(nx*7)))<.018;
+      if(bare>0)c=mix(c,soil,Math.min(1,bare*1.4));
+      ponds.forEach(function(p){var dx=(nx-p.x)/p.rx,dy=(ny-p.y)/p.ry;if(dx*dx+dy*dy<1+.25*(noise(nx*30,ny*30)-.5))c=mix(soil,water,.85)});
+      if(river)c=mix(c,water,.7);
+      var j=(rnd(x,y)-.5)*10;
+      g.fillStyle='rgb('+Math.round(c[0]+j)+','+Math.round(c[1]+j)+','+Math.round(c[2]+j)+')';
+      g.fillRect(x,y,px,px);
+    }}
+    ponds.forEach(function(p){
+      var cx=p.x*w,cy=p.y*h,rx=p.rx*w*1.9,ry=p.ry*h*1.9;
+      g.setLineDash([6,4]);g.lineWidth=2;g.strokeStyle=gold;g.beginPath();g.ellipse(cx,cy,rx,ry,0,0,Math.PI*2);g.stroke();
+      g.setLineDash([]);
+      var lx=cx+rx*.72,ly=cy-ry*.9,s=Math.max(20,w/22);
+      g.fillStyle=gold;g.fillRect(lx,ly-s/2,s,s);
+      g.fillStyle=paper;g.font='500 '+Math.round(s*.58)+'px "IBM Plex Mono", monospace';g.textAlign='center';g.textBaseline='middle';
+      g.fillText(String(p.r),lx+s/2,ly+1);
+    });
+  }
+  draw();
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(draw);
+  window.addEventListener('resize',draw);
+  try{matchMedia('(prefers-color-scheme: dark)').addEventListener('change',draw)}catch(e){}
+  new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+})();
+</script>
+</body>
+</html>
